@@ -1,7 +1,5 @@
 app.service( '$web3',['$q','$window', function ($q, $window) {
     console.log('Loading Web3 Service');
-    
-    var ready = $q.defer();
 
     // Connect to Web3
     try {
@@ -18,11 +16,6 @@ app.service( '$web3',['$q','$window', function ($q, $window) {
         console.error('no web3 detected');
         ready.reject(err);
     }
-
-    if(web3)
-        ready.resolve();
-    else
-        ready.reject('No web3 detected.', web3);
 
     // Refresh the page if the current account is changed
     var firstInterval = true;
@@ -61,31 +54,21 @@ app.service( '$web3',['$q','$window', function ($q, $window) {
             ropsten: 3,
             rinkby: 4,
             kovan: 42,
+            1: 'mainnet',
+            2: 'morden',
+            3: 'ropsten',
+            4: 'rinkby',
+            42: 'kovan',
         },
-        currentBlock: null,
-        assertNetworkId: function (requiredNetworkId){
+        getNetworkId: function (){
             var deferred = $q.defer();
 
-            ready.promise.then(function(){
-                console.log("Web3 ready");
-                web3.version.getNetwork((err, networkId) => {
-                    //console.log(err, netId);
-                    if(!err){
-                        if(networkId == requiredNetworkId){
-                            service.networks.current = requiredNetworkId;
-                            console.log("Network is connected: " + networkId);
-                            service.getBlock('latest').then(function(currentBlock){
-                                deferred.resolve(currentBlock);
-                            });
-                        } else {
-                            deferred.reject('Network Id incorrect');
-                        }
-                    } else {
-                        deferred.reject('Could not detect Network Id');
-                    }
-                });
-            }).catch(function(err){
-                deferred.reject(err);
+            web3.version.getNetwork((err, networkId) => {
+                //console.log(err, netId);
+                if(!err)
+                    deferred.resolve(networkId);
+                else
+                    deferred.reject(err);
             });
 
             return deferred.promise;
@@ -131,7 +114,7 @@ app.service( '$web3',['$q','$window', function ($q, $window) {
                         if(!err){
                             if(receipt){
                                 async_filter.stopWatching(function(err,res){
-                                    console.log(err, res, 'Stopped filter watching latest');
+                                    console.log(err, 'Transaction receipt found: ', res);
                                     deferred.resolve(receipt);
                                 });
                             } else {
@@ -139,7 +122,7 @@ app.service( '$web3',['$q','$window', function ($q, $window) {
                             }
                         } else {
                             async_filter.stopWatching(function(err,res){
-                                console.log(err, res, 'Stopped filter watching latest');
+                                console.log(err, res, 'An error occurred while processing your transaction!');
                                 deferred.reject(err);
                             });
                         }
