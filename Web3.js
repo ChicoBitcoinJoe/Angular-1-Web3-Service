@@ -80,13 +80,33 @@ app.service( '$web3',['$q','$window', function ($q, $window) {
                 //console.log(err,accounts);
                 if(!err){
                     if(!accounts[0])
-                        deferred.resolve(null);
+                        deferred.reject("No account detected.");
                     else
                         deferred.resolve(accounts[0]);
                 } else {
                     deferred.reject(err);
                 }
             });
+
+            return deferred.promise;
+        },
+        getAccount: function(stringOrAddress){
+            var deferred = $q.defer();
+            
+            if(stringOrAddress == 'current'){
+                this.getCurrentAccount().then(function(currentAddress){
+                    this.getBalance(currentAddress).then(function(balance){
+                        return {
+                            address: currentAddress,
+                            balance: balance,
+                            isLoggedIn: true
+                        }
+                    })
+                })
+
+            } else {
+                
+            }
 
             return deferred.promise;
         },
